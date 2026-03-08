@@ -102,7 +102,9 @@
 <h1>Pilot Launcher</h1>
 <p class="subtitle">cc-event-segmentation-online — Pavlovia pilot URL builder</p>
 
-<p class="step">Step 1: Open the <a href="https://pavlovia.org/yamhiroki/cc-event-segmentation-online" target="_blank">Pavlovia project page</a>, click <strong>Pilot</strong> to get a fresh token (valid 1 hour), then paste it below.</p>
+<p class="step">Step 1: Open the <a href="https://pavlovia.org/yamhiroki/cc-event-segmentation-online" target="_blank">Pavlovia project page</a>, click <strong>Pilot</strong> to get a fresh token (valid 1 hour). The URL will look like:<br>
+<code style="font-size:0.85em;word-break:break-all;">...?__pilotToken=<strong>a87ff679a2f3e71d9181a67b7542122c</strong>&amp;__oauthToken=...</code><br>
+Copy only the token — the 32-character string after <code>__pilotToken=</code> and <strong>before the first <code>&amp;</code></strong>.</p>
 
 <label for="token">Pilot Token</label>
 <input type="text" id="token" placeholder="e.g. a87ff679a2f3e71d9181a67b7542122c">
