@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pilot Launcher — cc-event-segmentation-online</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 560px;
+      margin: 60px auto;
+      padding: 0 24px;
+      background: #f5f5f5;
+      color: #222;
+    }
+    h1 { font-size: 1.3em; margin-bottom: 4px; }
+    p.subtitle { color: #666; font-size: 0.9em; margin-top: 0; margin-bottom: 32px; }
+    label { display: block; font-weight: bold; margin-bottom: 4px; margin-top: 20px; }
+    input[type="text"], select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 1em;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .hint { font-size: 0.82em; color: #888; margin-top: 4px; }
+    .pair-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .pair-grid label {
+      font-weight: normal;
+      margin: 0;
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      padding: 6px 4px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.9em;
+      user-select: none;
+    }
+    .pair-grid input[type="checkbox"] { display: none; }
+    .pair-grid input[type="checkbox"]:checked + span {
+      font-weight: bold;
+      color: #1a7a1a;
+    }
+    .pair-grid label:has(input:checked) {
+      background: #d4f0d4;
+      border-color: #4caf50;
+    }
+    .pair-names { font-size: 0.72em; color: #555; display: block; margin-top: 2px; }
+    .error { color: #c00; font-size: 0.88em; margin-top: 8px; min-height: 1.2em; }
+    button {
+      margin-top: 28px;
+      width: 100%;
+      padding: 12px;
+      font-size: 1.05em;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #388e3c; }
+    #result {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      word-break: break-all;
+      font-size: 0.88em;
+      display: none;
+    }
+    #result a { color: #1a7a1a; }
+    .step { color: #888; font-size: 0.82em; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+
+<h1>Pilot Launcher</h1>
+<p class="subtitle">cc-event-segmentation-online — Pavlovia pilot URL builder</p>
+
+<p class="step">Step 1: Click <strong>Pilot</strong> in the Pavlovia dashboard to get a fresh token (valid 1 hour), then paste it below.</p>
+
+<label for="token">Pilot Token</label>
+<input type="text" id="token" placeholder="e.g. a87ff679a2f3e71d9181a67b7542122c">
+<div class="hint">Copy from the URL Pavlovia generates: <code>?__pilotToken=XXXXXX</code></div>
+
+<label for="site">Site</label>
+<select id="site">
+  <option value="japan">japan — Japanese UI</option>
+  <option value="usa">usa — English UI</option>
+</select>
+
+<label for="order">Segmentation Order</label>
+<select id="order">
+  <option value="FC">FC — Fine first, then Coarse</option>
+  <option value="CF">CF — Coarse first, then Fine</option>
+</select>
+
+<label>Movie Pairs <span style="font-weight:normal;font-size:0.85em;">(select exactly 2)</span></label>
+<div class="pair-grid">
+  <label><input type="checkbox" value="1" onchange="updatePairs()"><span>Pair 1<span class="pair-names">Antarctica / Eight Below</span></span></label>
+  <label><input type="checkbox" value="2" onchange="updatePairs()"><span>Pair 2<span class="pair-names">Dark Water / Dark Water</span></span></label>
+  <label><input type="checkbox" value="3" onchange="updatePairs()"><span>Pair 3<span class="pair-names">High and Low / High and Low</span></span></label>
+  <label><input type="checkbox" value="4" onchange="updatePairs()"><span>Pair 4<span class="pair-names">Ring / Ring</span></span></label>
+  <label><input type="checkbox" value="5" onchange="updatePairs()"><span>Pair 5<span class="pair-names">Shall We Dance / Shall We Dance</span></span></label>
+  <label><input type="checkbox" value="6" onchange="updatePairs()"><span>Pair 6<span class="pair-names">Unforgiven / Unforgiven</span></span></label>
+  <label><input type="checkbox" value="7" onchange="updatePairs()"><span>Pair 7<span class="pair-names">Yellow Handkerchief / Yellow Handkerchief</span></span></label>
+  <label><input type="checkbox" value="8" onchange="updatePairs()"><span>Pair 8<span class="pair-names">Yojimbo / Fistful of Dollars</span></span></label>
+</div>
+<div class="error" id="pairError"></div>
+
+<button onclick="launch()">Generate &amp; Open Pilot URL</button>
+
+<div id="result"></div>
+
+<script>
+  function updatePairs() {
+    var checked = getCheckedPairs();
+    document.querySelectorAll('.pair-grid input[type="checkbox"]').forEach(function(cb) {
+      if (checked.length >= 2 && !cb.checked) cb.disabled = true;
+      else cb.disabled = false;
+    });
+    document.getElementById('pairError').textContent = '';
+  }
+
+  function getCheckedPairs() {
+    return Array.from(document.querySelectorAll('.pair-grid input[type="checkbox"]:checked'))
+      .map(function(cb) { return cb.value; });
+  }
+
+  function launch() {
+    var token  = document.getElementById('token').value.trim();
+    var site   = document.getElementById('site').value;
+    var order  = document.getElementById('order').value;
+    var pairs  = getCheckedPairs();
+
+    if (!token) {
+      alert('Please enter a pilot token.');
+      return;
+    }
+    if (pairs.length !== 2) {
+      document.getElementById('pairError').textContent = 'Please select exactly 2 pairs.';
+      return;
+    }
+
+    var url = 'https://run.pavlovia.org/yamhiroki/cc-event-segmentation-online/'
+      + '?__pilotToken=' + encodeURIComponent(token)
+      + '&site=' + site
+      + '&pairs=' + pairs.join(',')
+      + '&order=' + order;
+
+    var resultDiv = document.getElementById('result');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<strong>URL:</strong><br><a href="' + url + '" target="_blank">' + url + '</a>';
+
+    window.open(url, '_blank');
+  }
+</script>
+
+</body>
+</html>
