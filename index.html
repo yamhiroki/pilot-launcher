@@ -54,6 +54,15 @@
     }
     .pair-names { font-size: 0.72em; color: #555; display: block; margin-top: 2px; }
     .error { color: #c00; font-size: 0.88em; margin-top: 8px; min-height: 1.2em; }
+    .lang-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .lang-grid label { font-weight: normal; margin: 0; font-size: 0.9em; }
+    .lang-grid select { margin-top: 4px; }
+    #langSection { display: none; }
     button {
       margin-top: 28px;
       width: 100%;
@@ -135,6 +144,26 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
 </div>
 <div class="error" id="pairError"></div>
 
+<div id="langSection">
+  <label>Language Version <span style="font-weight:normal;font-size:0.85em;">(JP = original, EN = remake)</span></label>
+  <div class="lang-grid">
+    <div>
+      <label id="lang1Label">Pair ?</label>
+      <select id="lang1">
+        <option value="jp">JP (Japanese original)</option>
+        <option value="en">EN (English remake)</option>
+      </select>
+    </div>
+    <div>
+      <label id="lang2Label">Pair ?</label>
+      <select id="lang2">
+        <option value="jp">JP (Japanese original)</option>
+        <option value="en" selected>EN (English remake)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
 <button onclick="launch()">Generate &amp; Open Pilot URL</button>
 
 <div id="result"></div>
@@ -154,6 +183,15 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
       else cb.disabled = false;
     });
     document.getElementById('pairError').textContent = '';
+    // Show language selectors when exactly 2 pairs are selected
+    var langSection = document.getElementById('langSection');
+    if (checked.length === 2) {
+      document.getElementById('lang1Label').textContent = 'Pair ' + checked[0];
+      document.getElementById('lang2Label').textContent = 'Pair ' + checked[1];
+      langSection.style.display = 'block';
+    } else {
+      langSection.style.display = 'none';
+    }
   }
 
   function getCheckedPairs() {
@@ -166,6 +204,8 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
     var site   = document.getElementById('site').value;
     var order  = document.getElementById('order').value;
     var pairs  = getCheckedPairs();
+    var lang1  = document.getElementById('lang1').value;
+    var lang2  = document.getElementById('lang2').value;
 
     if (!token) {
       alert('Please enter a pilot token.');
@@ -180,7 +220,8 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
       + '?__pilotToken=' + encodeURIComponent(token)
       + '&site=' + site
       + '&pairs=' + pairs.join(',')
-      + '&order=' + order;
+      + '&order=' + order
+      + '&langs=' + lang1 + ',' + lang2;
 
     var resultDiv = document.getElementById('result');
     resultDiv.style.display = 'block';
