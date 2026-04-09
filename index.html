@@ -104,6 +104,20 @@
       font-size: 0.95em;
       font-family: monospace;
     }
+    .note {
+      background: #e8f4fd;
+      border-left: 4px solid #1976d2;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      font-size: 0.86em;
+      color: #1a4a7a;
+    }
+    .lang-balance {
+      font-size: 0.88em;
+      margin-top: 6px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -145,39 +159,42 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
 <div class="error" id="pairError"></div>
 
 <div id="langSection">
-  <label>Language Version <span style="font-weight:normal;font-size:0.85em;">(exactly 2 JP + 2 EN required)</span></label>
-  <div class="lang-grid">
+  <label>Language Version</label>
+  <div class="note">
+    Each participant sees <strong>exactly 2 JP and 2 EN</strong> clips (counterbalancing requirement).
+    Selecting a 3rd clip of the same language will automatically flip one of the others to maintain the 2+2 balance.
+  </div>
+  <div class="lang-grid" style="margin-top:10px;">
     <div>
       <label id="lang1Label">Pair ?</label>
-      <select id="lang1" onchange="updateLangs()">
-        <option value="jp">JP (Japanese original)</option>
-        <option value="en">EN (English remake)</option>
+      <select id="lang1" onchange="updateLangs('lang1')">
+        <option value="jp">JP</option>
+        <option value="en">EN</option>
       </select>
     </div>
     <div>
       <label id="lang2Label">Pair ?</label>
-      <select id="lang2" onchange="updateLangs()">
-        <option value="jp">JP (Japanese original)</option>
-        <option value="en" selected>EN (English remake)</option>
+      <select id="lang2" onchange="updateLangs('lang2')">
+        <option value="jp">JP</option>
+        <option value="en" selected>EN</option>
       </select>
     </div>
     <div>
       <label id="lang3Label">Pair ?</label>
-      <select id="lang3" onchange="updateLangs()">
-        <option value="jp">JP (Japanese original)</option>
-        <option value="en">EN (English remake)</option>
+      <select id="lang3" onchange="updateLangs('lang3')">
+        <option value="jp">JP</option>
+        <option value="en">EN</option>
       </select>
     </div>
     <div>
       <label id="lang4Label">Pair ?</label>
-      <select id="lang4" onchange="updateLangs()">
-        <option value="jp">JP (Japanese original)</option>
-        <option value="en" selected>EN (English remake)</option>
+      <select id="lang4" onchange="updateLangs('lang4')">
+        <option value="jp">JP</option>
+        <option value="en" selected>EN</option>
       </select>
     </div>
   </div>
-  <div id="langBalance" class="hint" style="margin-top:6px;"></div>
-  <div class="error" id="langError"></div>
+  <div id="langBalance" class="lang-balance" style="color:#1a7a1a;">JP: 2 / EN: 2</div>
 </div>
 
 <button onclick="launch()">Generate &amp; Open Pilot URL</button>
@@ -217,26 +234,28 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
       .map(function(cb) { return cb.value; });
   }
 
+  var LANG_IDS = ['lang1', 'lang2', 'lang3', 'lang4'];
+
   function getLangs() {
-    return [
-      document.getElementById('lang1').value,
-      document.getElementById('lang2').value,
-      document.getElementById('lang3').value,
-      document.getElementById('lang4').value
-    ];
+    return LANG_IDS.map(function(id) { return document.getElementById(id).value; });
   }
 
-  function updateLangs() {
+  // Auto-enforce 2 JP + 2 EN: if the changed select makes 3+ of one language,
+  // flip the first OTHER select with the same value to the opposite language.
+  function updateLangs(changedId) {
+    var changedVal = document.getElementById(changedId).value;
+    var opposite = changedVal === 'jp' ? 'en' : 'jp';
+    var sameIds = LANG_IDS.filter(function(id) {
+      return id !== changedId && document.getElementById(id).value === changedVal;
+    });
+    // If already 2 others have the same value (3 total including changed), flip the first one
+    if (sameIds.length >= 2) {
+      document.getElementById(sameIds[0]).value = opposite;
+    }
+    // Update counter display (always 2+2 at this point)
     var langs = getLangs();
     var jp = langs.filter(function(l) { return l === 'jp'; }).length;
-    var en = langs.filter(function(l) { return l === 'en'; }).length;
-    document.getElementById('langBalance').textContent = 'JP: ' + jp + ' / EN: ' + en;
-    if (jp === 2 && en === 2) {
-      document.getElementById('langBalance').style.color = '#1a7a1a';
-      document.getElementById('langError').textContent = '';
-    } else {
-      document.getElementById('langBalance').style.color = '#c00';
-    }
+    document.getElementById('langBalance').textContent = 'JP: ' + jp + ' / EN: ' + (4 - jp);
   }
 
   function launch() {
@@ -252,12 +271,6 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
     }
     if (pairs.length !== 4) {
       document.getElementById('pairError').textContent = 'Please select exactly 4 pairs.';
-      return;
-    }
-    var jp = langs.filter(function(l) { return l === 'jp'; }).length;
-    var en = langs.filter(function(l) { return l === 'en'; }).length;
-    if (jp !== 2 || en !== 2) {
-      document.getElementById('langError').textContent = 'Please select exactly 2 JP and 2 EN.';
       return;
     }
 
