@@ -131,7 +131,7 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
   <option value="CF">CF — Coarse first, then Fine</option>
 </select>
 
-<label>Movie Pairs <span style="font-weight:normal;font-size:0.85em;">(select exactly 2)</span></label>
+<label>Movie Pairs <span style="font-weight:normal;font-size:0.85em;">(select exactly 4)</span></label>
 <div class="pair-grid">
   <label><input type="checkbox" value="1" onchange="updatePairs()"><span>Pair 1<span class="pair-names">Antarctica / Eight Below</span></span></label>
   <label><input type="checkbox" value="2" onchange="updatePairs()"><span>Pair 2<span class="pair-names">Dark Water / Dark Water</span></span></label>
@@ -161,6 +161,20 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
         <option value="en" selected>EN (English remake)</option>
       </select>
     </div>
+    <div>
+      <label id="lang3Label">Pair ?</label>
+      <select id="lang3">
+        <option value="jp">JP (Japanese original)</option>
+        <option value="en">EN (English remake)</option>
+      </select>
+    </div>
+    <div>
+      <label id="lang4Label">Pair ?</label>
+      <select id="lang4">
+        <option value="jp">JP (Japanese original)</option>
+        <option value="en" selected>EN (English remake)</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -179,15 +193,17 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
   function updatePairs() {
     var checked = getCheckedPairs();
     document.querySelectorAll('.pair-grid input[type="checkbox"]').forEach(function(cb) {
-      if (checked.length >= 2 && !cb.checked) cb.disabled = true;
+      if (checked.length >= 4 && !cb.checked) cb.disabled = true;
       else cb.disabled = false;
     });
     document.getElementById('pairError').textContent = '';
-    // Show language selectors when exactly 2 pairs are selected
+    // Show language selectors when exactly 4 pairs are selected
     var langSection = document.getElementById('langSection');
-    if (checked.length === 2) {
+    if (checked.length === 4) {
       document.getElementById('lang1Label').textContent = 'Pair ' + checked[0];
       document.getElementById('lang2Label').textContent = 'Pair ' + checked[1];
+      document.getElementById('lang3Label').textContent = 'Pair ' + checked[2];
+      document.getElementById('lang4Label').textContent = 'Pair ' + checked[3];
       langSection.style.display = 'block';
     } else {
       langSection.style.display = 'none';
@@ -206,13 +222,15 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
     var pairs  = getCheckedPairs();
     var lang1  = document.getElementById('lang1').value;
     var lang2  = document.getElementById('lang2').value;
+    var lang3  = document.getElementById('lang3').value;
+    var lang4  = document.getElementById('lang4').value;
 
     if (!token) {
       alert('Please enter a pilot token.');
       return;
     }
-    if (pairs.length !== 2) {
-      document.getElementById('pairError').textContent = 'Please select exactly 2 pairs.';
+    if (pairs.length !== 4) {
+      document.getElementById('pairError').textContent = 'Please select exactly 4 pairs.';
       return;
     }
 
@@ -221,7 +239,7 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
       + '&site=' + site
       + '&pairs=' + pairs.join(',')
       + '&order=' + order
-      + '&langs=' + lang1 + ',' + lang2;
+      + '&langs=' + [lang1, lang2, lang3, lang4].join(',');
 
     var resultDiv = document.getElementById('result');
     resultDiv.style.display = 'block';
