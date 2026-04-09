@@ -145,37 +145,39 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
 <div class="error" id="pairError"></div>
 
 <div id="langSection">
-  <label>Language Version <span style="font-weight:normal;font-size:0.85em;">(JP = original, EN = remake)</span></label>
+  <label>Language Version <span style="font-weight:normal;font-size:0.85em;">(exactly 2 JP + 2 EN required)</span></label>
   <div class="lang-grid">
     <div>
       <label id="lang1Label">Pair ?</label>
-      <select id="lang1">
+      <select id="lang1" onchange="updateLangs()">
         <option value="jp">JP (Japanese original)</option>
         <option value="en">EN (English remake)</option>
       </select>
     </div>
     <div>
       <label id="lang2Label">Pair ?</label>
-      <select id="lang2">
+      <select id="lang2" onchange="updateLangs()">
         <option value="jp">JP (Japanese original)</option>
         <option value="en" selected>EN (English remake)</option>
       </select>
     </div>
     <div>
       <label id="lang3Label">Pair ?</label>
-      <select id="lang3">
+      <select id="lang3" onchange="updateLangs()">
         <option value="jp">JP (Japanese original)</option>
         <option value="en">EN (English remake)</option>
       </select>
     </div>
     <div>
       <label id="lang4Label">Pair ?</label>
-      <select id="lang4">
+      <select id="lang4" onchange="updateLangs()">
         <option value="jp">JP (Japanese original)</option>
         <option value="en" selected>EN (English remake)</option>
       </select>
     </div>
   </div>
+  <div id="langBalance" class="hint" style="margin-top:6px;"></div>
+  <div class="error" id="langError"></div>
 </div>
 
 <button onclick="launch()">Generate &amp; Open Pilot URL</button>
@@ -215,15 +217,34 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
       .map(function(cb) { return cb.value; });
   }
 
+  function getLangs() {
+    return [
+      document.getElementById('lang1').value,
+      document.getElementById('lang2').value,
+      document.getElementById('lang3').value,
+      document.getElementById('lang4').value
+    ];
+  }
+
+  function updateLangs() {
+    var langs = getLangs();
+    var jp = langs.filter(function(l) { return l === 'jp'; }).length;
+    var en = langs.filter(function(l) { return l === 'en'; }).length;
+    document.getElementById('langBalance').textContent = 'JP: ' + jp + ' / EN: ' + en;
+    if (jp === 2 && en === 2) {
+      document.getElementById('langBalance').style.color = '#1a7a1a';
+      document.getElementById('langError').textContent = '';
+    } else {
+      document.getElementById('langBalance').style.color = '#c00';
+    }
+  }
+
   function launch() {
     var token  = document.getElementById('token').value.trim();
     var site   = document.getElementById('site').value;
     var order  = document.getElementById('order').value;
     var pairs  = getCheckedPairs();
-    var lang1  = document.getElementById('lang1').value;
-    var lang2  = document.getElementById('lang2').value;
-    var lang3  = document.getElementById('lang3').value;
-    var lang4  = document.getElementById('lang4').value;
+    var langs  = getLangs();
 
     if (!token) {
       alert('Please enter a pilot token.');
@@ -233,13 +254,19 @@ Copy only the token — the 32-character string after <code>__pilotToken=</code>
       document.getElementById('pairError').textContent = 'Please select exactly 4 pairs.';
       return;
     }
+    var jp = langs.filter(function(l) { return l === 'jp'; }).length;
+    var en = langs.filter(function(l) { return l === 'en'; }).length;
+    if (jp !== 2 || en !== 2) {
+      document.getElementById('langError').textContent = 'Please select exactly 2 JP and 2 EN.';
+      return;
+    }
 
     var url = 'https://run.pavlovia.org/yamhiroki/cc-event-segmentation-online/'
       + '?__pilotToken=' + encodeURIComponent(token)
       + '&site=' + site
       + '&pairs=' + pairs.join(',')
       + '&order=' + order
-      + '&langs=' + [lang1, lang2, lang3, lang4].join(',');
+      + '&langs=' + langs.join(',');
 
     var resultDiv = document.getElementById('result');
     resultDiv.style.display = 'block';
